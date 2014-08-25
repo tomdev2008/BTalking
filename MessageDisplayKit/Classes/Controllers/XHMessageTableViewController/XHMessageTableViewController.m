@@ -436,8 +436,8 @@ static CGPoint  delayOffset = {0.0};
     
     if (rows > 0) {
         [self.messageTableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:rows - 1 inSection:0]
-                              atScrollPosition:UITableViewScrollPositionBottom
-                                      animated:animated];
+                                     atScrollPosition:UITableViewScrollPositionBottom
+                                             animated:animated];
     }
 }
 
@@ -448,8 +448,8 @@ static CGPoint  delayOffset = {0.0};
         return;
 	
 	[self.messageTableView scrollToRowAtIndexPath:indexPath
-						  atScrollPosition:position
-								  animated:animated];
+                                 atScrollPosition:position
+                                         animated:animated];
 }
 
 #pragma mark - Previte Method
@@ -506,7 +506,7 @@ static CGPoint  delayOffset = {0.0};
 	messageTableView.delegate = self;
     messageTableView.separatorColor = [UIColor clearColor];
     messageTableView.separatorStyle = UITableViewCellSeparatorStyleNone;
-
+    
     
     BOOL shouldLoadMoreMessagesScrollToTop = YES;
     if ([self.delegate respondsToSelector:@selector(shouldLoadMoreMessagesScrollToTop)]) {
@@ -515,11 +515,11 @@ static CGPoint  delayOffset = {0.0};
     if (shouldLoadMoreMessagesScrollToTop) {
         messageTableView.tableHeaderView = self.headerContainerView;
     }
-
+    
     [self.view addSubview:messageTableView];
     [self.view sendSubviewToBack:messageTableView];
 	_messageTableView = messageTableView;
-
+    
     // 蒲剑
     // 2014.07.20
     
@@ -641,9 +641,9 @@ static CGPoint  delayOffset = {0.0};
     
     // KVO 检查contentSize
     [self.messageInputView.inputTextView addObserver:self
-                                     forKeyPath:@"contentSize"
-                                        options:NSKeyValueObservingOptionNew
-                                        context:nil];
+                                          forKeyPath:@"contentSize"
+                                             options:NSKeyValueObservingOptionNew
+                                             context:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
@@ -661,7 +661,7 @@ static CGPoint  delayOffset = {0.0};
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.    
+    // Do any additional setup after loading the view.
     // 初始化消息页面布局
     [self initilzer];
     [[XHMessageBubbleView appearance] setFont:[UIFont systemFontOfSize:16.0f]];
@@ -707,7 +707,7 @@ static CGPoint  delayOffset = {0.0};
     NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
     dateFormatter.dateFormat = @"yy-MMMM-dd";
     recorderPath = [[NSString alloc] initWithFormat:@"%@/Documents/", NSHomeDirectory()];
-//    dateFormatter.dateFormat = @"hh-mm-ss";
+    //    dateFormatter.dateFormat = @"hh-mm-ss";
     dateFormatter.dateFormat = @"yyyy-MM-dd-hh-mm-ss";
     recorderPath = [recorderPath stringByAppendingFormat:@"%@-MySound.caf", [dateFormatter stringFromDate:now]];
     return recorderPath;
@@ -1116,15 +1116,15 @@ static CGPoint  delayOffset = {0.0};
 
 - (void)didSelecteEmotion:(XHEmotion *)emotion atIndexPath:(NSIndexPath *)indexPath {
     
-//    if (emotion.emotionPath) {
-//        [self didSendEmotionMessageWithEmotionPath:emotion.emotionPath];
-//    }
-
+    //    if (emotion.emotionPath) {
+    //        [self didSendEmotionMessageWithEmotionPath:emotion.emotionPath];
+    //    }
+    
     if (emotion.emotionPath)
     {
         [self didSendEmotionMessageWithEmotion:emotion];
     }
-
+    
 }
 
 
@@ -1212,46 +1212,16 @@ static CGPoint  delayOffset = {0.0};
             displayTimestamp = [self.delegate shouldDisplayTimestampForRowAtIndexPath:indexPath];
         }
         
-        XHMessageTableViewCell *messageTableViewCell;
+        static NSString *cellIdentifier = @"XHMessageTableViewCell";
+        //
+        XHMessageTableViewCell *messageTableViewCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
         
-        if([message bubbleMessageType] == XHBubbleMessageTypeReceiving)
+        if (!messageTableViewCell)
         {
-            static NSString *cellIdentifier = @"ChatMessageCellReceiving";
-            messageTableViewCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
-            
-            if (!messageTableViewCell)
-            {
-                messageTableViewCell = [[XHMessageTableViewCell alloc] initWithMessage:message displaysTimestamp:displayTimestamp reuseIdentifier:cellIdentifier];
-                messageTableViewCell.delegate = self;
-            }
-        }
-        else
-        {
-            static NSString *cellIdentifier = @"ChatMessageCellSend";
-            messageTableViewCell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
-            if (!messageTableViewCell)
-            {
-                messageTableViewCell = [[XHMessageTableViewCell alloc] initWithMessage:message displaysTimestamp:displayTimestamp reuseIdentifier:cellIdentifier];
-                messageTableViewCell.delegate = self;
-            }
+            messageTableViewCell = [[XHMessageTableViewCell alloc] initWithMessage:message displaysTimestamp:displayTimestamp reuseIdentifier:cellIdentifier];
+            messageTableViewCell.delegate = self;
         }
         
-        
-        if(indexPath.row == 3)
-        {
-            NSLog(@"%@%d%@", [message sender], [message bubbleMessageType], [message text]);
-            
-        }
-        
- 
-        
-
-        
-
-
-        
-
-    
         messageTableViewCell.indexPath = indexPath;
         [messageTableViewCell configureCellWithMessage:message displaysTimestamp:displayTimestamp];
         [messageTableViewCell setBackgroundColor:tableView.backgroundColor];
@@ -1268,7 +1238,7 @@ static CGPoint  delayOffset = {0.0};
     }
     @finally
     {
-
+        
     }
     
     

@@ -53,12 +53,6 @@ UIImage *_upload_image_temp; // 临时保存上传图片 蒲剑;
 NSString *_upload_imagefilename_temp; // 临时保存上传图片 蒲剑;
 UIDocumentInteractionController *documentController; //第三方应用交互控件 蒲剑
 
-
-
-NSMutableArray *testList; //测试
-int sno; //测试
-
-
 - (XHMessage *)getTextMessageWithBubbleMessageType:(XHBubbleMessageType)bubbleMessageType {
     XHMessage *textMessage = [[XHMessage alloc] initWithText:@"Call Me 13002994107. 这里是事务通，如果大家喜欢这个，请帮帮忙支持一下哈！" sender:@"老蒲" timestamp:[NSDate distantPast]];
     textMessage.avator = [UIImage imageNamed:@"avator"];
@@ -155,7 +149,7 @@ int sno; //测试
                     imageName = @"meeting_sign";
                     title = @"签到";
                     break;
-
+                    
                 }
                 default:
                     break;
@@ -220,7 +214,7 @@ int sno; //测试
 - (void)loadTopicMessage:(NSString *) topicid page:(int) page
 {
     
-     NSLog(@"want to load page : %d", page);
+    NSLog(@"want to load page : %d", page);
     
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
     
@@ -228,18 +222,18 @@ int sno; //测试
     NSString *cpage = [NSString stringWithFormat: @"%d", page];
     NSString *order = @"-1";
     
-    NSString *strURL = [@"" stringByAppendingFormat:@"%@%@%@%@%@%@%@%@%@", delegate._http,delegate._server, @"/chatsfromtopic?topicid=",self._topic_id_cur,@"&page=",cpage,@"&order=",order,@"&perpage=5"];
+    NSString *strURL = [@"" stringByAppendingFormat:@"%@%@%@%@%@%@%@%@%@", delegate._http,delegate._server, @"/chatsfromtopic?topicid=",self._topic_id_cur,@"&page=",cpage,@"&order=",order,@"&perpage=10"];
     NSURL *url = [NSURL URLWithString:strURL];
     ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
     [request setUseCookiePersistence : YES];
     [request addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
     [request setValidatesSecureCertificate:NO];
-
+    
     request.delegate = self;
     request.didFinishSelector = @selector(load_messages_finished:);
     request.didFailSelector = @selector(load_messages_failed:);
     [request startAsynchronous];
-
+    
 }
 
 - (void)load_messages_finished:(ASIHTTPRequest *)request
@@ -247,6 +241,11 @@ int sno; //测试
     NSString *topics_str = [request responseString];
     NSLog(@"topics_str : %@", topics_str);
     
+    [self parse_json_messages:topics_str];
+}
+
+- (void)parse_json_messages:(NSString *) topics_str
+{
     SBJsonParser *parser = [[SBJsonParser alloc] init];
     NSDictionary *json = [parser objectWithString:topics_str];
     
@@ -259,11 +258,13 @@ int sno; //测试
     {
         NSMutableArray *cmessages = [[NSMutableArray alloc] init];
         
+        
         int s_pages = [(NSString*)[json objectForKey:@"pages"] intValue];
         int s_page = [(NSString*)[json objectForKey:@"page"] intValue];
         
+        
         NSArray *items = [json objectForKey:@"chats"];
-    
+        
         for(int i=(items.count - 1);i>=0;i--)
         {
             NSDictionary *topic = [items objectAtIndex:(i)];
@@ -279,7 +280,7 @@ int sno; //测试
             
             XHMessage *message = [self tranMessage:content fromSender:cname onDate:[NSDate date]];
             
-//            XHMessage *message = [[XHMessage alloc] initWithText:content sender:cname timestamp:[NSDate date]];
+            //            XHMessage *message = [[XHMessage alloc] initWithText:content sender:cname timestamp:[NSDate date]];
             
             // 判断消息发送者是否当前用户
             if([delegate._userid isEqualToString:senderid])
@@ -291,9 +292,9 @@ int sno; //测试
                 message.bubbleMessageType = XHBubbleMessageTypeReceiving;
             }
             
-            NSLog(@"%d%@%@%@%@%@%@", message.bubbleMessageType, @":", message.sender, @":", message.text, @":", sender);
+            NSLog(@"%d%@%@%@%@%@%@", message.bubbleMessageType, @":", message.sender, @":", message.text, @":", senderid);
             
-
+            
             [self.messages insertObject:message atIndex:0];
         }
         
@@ -304,14 +305,25 @@ int sno; //测试
             NSLog(@"%d%@%d%@%@%@%@", i, @":", message.bubbleMessageType, @":", message.sender, @":", message.text);
         }
         
+        
         self._page_cur = s_page;
         self._pages_cur = s_pages;
+        
+        //        NSLog(@"%@%d", @"client page:", self._page_cur);
+        //        NSLog(@"%@%d", @"client pages:", self._pages_cur);
+        //
+        //        NSLog(@"%@%d", @"server page:", s_page);
+        //        NSLog(@"%@%d", @"server pages:", s_pages);
     }
     
     [self.messageTableView reloadData];
     
     [self doneLoadingTableViewData];
 }
+
+
+
+
 
 - (void)load_messages_failed:(ASIHTTPRequest *)request
 {
@@ -328,68 +340,14 @@ int sno; //测试
 }
 
 
--(void) test
-{
-    
-    [self egoRefreshTableHeaderDidTriggerRefresh:_refreshHeaderView];
-    
-//    for(int i=0;i<5;i++)
-//    {
-//
-//
-//        NSDate *date = [NSDate date];
-//       
-//        XHMessage *message;
-//        
-//        if(i==1 || i==3)
-//        {
-//            NSString *sender = @"pujian";
-//            NSString *text = [@"" stringByAppendingFormat:@"%@%d", @"c", sno];
-//            message = [[XHMessage alloc] initWithText:text sender:sender timestamp:date];
-//            message.bubbleMessageType = XHBubbleMessageTypeSending;
-//
-//        }
-//        else
-//        {
-//            NSString *sender = @"gongrui";
-//            NSString *text = [@"" stringByAppendingFormat:@"%@%d", @"c", sno];
-//            message = [[XHMessage alloc] initWithText:text sender:sender timestamp:date];
-//            message.bubbleMessageType = XHBubbleMessageTypeReceiving;
-//        }
-//        
-//        [testList insertObject:message atIndex:0];
-//        [self.messages insertObject:message atIndex:0];
-//
-//        sno = sno + 1;
-//    }
-//    
-//    for(int i=0;i<testList.count;i++)
-//    {
-//        XHMessage *message = [self.messages objectAtIndex:i];
-//        NSLog(@"%@%d%@%@", @"num", i, @":", message.text);
-//    }
-//    [self.messageTableView reloadData];
-}
-
-
-- (void)viewDidLoad
-{
-    
+- (void)viewDidLoad {
     [super viewDidLoad];
-
-    
-    UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithTitle:@"测试" style:UIBarButtonItemStylePlain target:self action:@selector(test)]; [self.navigationItem setRightBarButtonItem:rightButton];
-    
-    return;
-    
-    
-    
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
-
+    
     [self init_plusin];
-
+    
     [self init_emotion];
-
+    
     [self init_menu];
     
     // 蒲剑 记录当前界面记录标志，表明用户当前在聊天界面操作
@@ -401,7 +359,7 @@ int sno; //测试
         view1.delegate = self;
         [self.messageTableView addSubview:view1];
         _refreshHeaderView = view1;
-
+        
     }
     
     [_refreshHeaderView refreshLastUpdatedDate];
@@ -413,7 +371,17 @@ int sno; //测试
 // 初始化标题菜单栏（根据不同话题类型呈现菜单）
 - (void)init_menu
 {
+    //    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(showMenuOnView:)];
+    
+    UIBarButtonItem *item1 = [[UIBarButtonItem alloc] initWithTitle:@"Menu" style:UIBarButtonItemStyleBordered target:self action:@selector(show_menu_topic)];
+    UIBarButtonItem *item2 = [[UIBarButtonItem alloc] initWithTitle:@"Menu" style:UIBarButtonItemStyleBordered target:self action:@selector(show_menu_set)];
+    
+    self.navigationItem.rightBarButtonItems = @[item1, item2];
+    
+    
 }
+
+
 
 // 初始化第三方插件
 - (void)init_plusin
@@ -449,7 +417,7 @@ int sno; //测试
     
     // 目前仅提供1套表情 蒲剑
     NSMutableArray *emotionManagers = [NSMutableArray array];
-
+    
     for (NSInteger i = 0; i < 1; i ++)
     {
         XHEmotionManager *emotionManager = [[XHEmotionManager alloc] init];
@@ -515,37 +483,37 @@ int sno; //测试
     [_refreshHeaderView egoRefreshScrollViewDidScroll:scrollView];
 }
 
-- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
-{
-    NSLog(@"egoRefreshTableHeaderDidTriggerRefresh");
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate{
     [_refreshHeaderView egoRefreshScrollViewDidEndDragging:scrollView];
 }
 
 
 - (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view{
-
-
-    NSLog(@"egoRefreshTableHeaderDidTriggerRefresh");
-    
     [self reloadTableViewDataSource];
+    
+    // 请求后台数据
+    
+    // 如果当前页数小于数据总页数，可以继续加载数据，否则，不请求。
+    NSLog(@"%@%d", @"current page:", self._page_cur);
+    NSLog(@"%@%d", @"current pages:", self._pages_cur);
+    
     
     // if(self._page_cur<self._pages_cur)
     {
         [self loadTopicMessage:self._topic_id_cur page:self._page_cur + 1];
     }
+    
+    
 }
 
-- (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view
-{
-    NSLog(@"egoRefreshTableHeaderDataSourceIsLoading");
+- (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view{
     return _reloading;
 }
-
-- (NSDate*)egoRefreshTableHeaderDataSourceLastUpdated:(EGORefreshTableHeaderView*)view
-{
-    NSLog(@"egoRefreshTableHeaderDataSourceLastUpdated");
+- (NSDate*)egoRefreshTableHeaderDataSourceLastUpdated:(EGORefreshTableHeaderView*)view{
     return [NSDate date];
 }
+
+
 
 ////////////////////
 
@@ -636,9 +604,9 @@ int sno; //测试
 {
     @try
     {
-
-
-       NSURL *url = [NSURL URLWithString:message.originPhotoUrl];
+        
+        
+        NSURL *url = [NSURL URLWithString:message.originPhotoUrl];
         
         
         NSURLRequest *req = [[NSURLRequest alloc] initWithURL:url];
@@ -667,7 +635,7 @@ int sno; //测试
         
         
         
-
+        
     }
     @catch(NSException *e)
     {
@@ -748,14 +716,14 @@ int sno; //测试
  *  @param date   发送时间
  */
 - (void)didSendText:(NSString *)text fromSender:(NSString *)sender onDate:(NSDate *)date {
-
+    
     XHMessage *textMessage = [[XHMessage alloc] initWithText:text sender:sender timestamp:date];
     [self addMessage:textMessage];
     [self finishSendMessageWithBubbleMessageType:XHBubbleMessageMediaTypeText];
-
+    
     // 蒲剑 添加
     // 发送消息服务器
-
+    
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
     NSString *content = text;
     NSString *topicid = self._topic_id_cur;
@@ -777,7 +745,7 @@ int sno; //测试
     XHMessage *message = [self tranMessage:text fromSender:sender onDate:date];
     [self addMessage:message];
     [self finishSendMessageWithBubbleMessageType:message.messageMediaType];
-
+    
     // 蒲剑 添加
     // 发送消息服务器
     
@@ -792,13 +760,13 @@ int sno; //测试
 
 -(XHMessage *)tranMessage:(NSString *) text fromSender:(NSString *)sender onDate:(NSDate *)date
 {
-
+    
     NSMutableDictionary *dictionary;
     dictionary = [MessageTools check_message_type:text];
     NSString *mediatype = [dictionary objectForKey:@"mediatype"];
-
+    
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
-
+    
     XHMessage *message;
     
     if([@"face" isEqualToString:mediatype])
@@ -811,7 +779,7 @@ int sno; //测试
     {
         NSString *fileid = (NSString*)[dictionary objectForKey:@"fileid"];
         NSString *url = [@"" stringByAppendingFormat:@"%@%@%@%@", delegate._http,delegate._server, @"/download/", fileid];
-
+        
         message = [[XHMessage alloc] initWithVoicePath:url voiceUrl:url voiceDuration:0 sender:sender timestamp:date];
         message.text = text;
         return message;
@@ -834,7 +802,7 @@ int sno; //测试
         NSString *url = [@"" stringByAppendingFormat:@"%@%@%@%@", delegate._http,delegate._server, @"/download/", fileid];
         
         UIImage *pic = [UIImage imageNamed:@"ofm_mail_icon.png"];
-//        message = [[XHMessage alloc] initWithFile:pic filePath:nil fileUrl:url sender:sender timestamp:date];
+        //        message = [[XHMessage alloc] initWithFile:pic filePath:nil fileUrl:url sender:sender timestamp:date];
         message = [[XHMessage alloc] initWithPhoto:pic thumbnailUrl:nil originPhotoUrl:url sender:sender timestamp:date];
         
         message.text = text;
@@ -843,7 +811,7 @@ int sno; //测试
     
     
     message = [[XHMessage alloc] initWithText:text sender:sender timestamp:date];
-
+    
     return message;
     
 }
@@ -895,7 +863,7 @@ int sno; //测试
 - (void)didSendVoice:(NSString *)voicePath voiceDuration:(NSString *)voiceDuration fromSender:(NSString *)sender onDate:(NSDate *)date
 {
     [self upload_voice:voicePath];
-
+    
 }
 
 /**
@@ -906,11 +874,11 @@ int sno; //测试
  *  @param date     发送时间
  */
 - (void)didSendEmotion:(NSString *)emotionPath fromSender:(NSString *)sender onDate:(NSDate *)date {
-//    XHMessage *emotionMessage = [[XHMessage alloc] initWithEmotionPath:emotionPath sender:sender timestamp:date];
-//    emotionMessage.avator = [UIImage imageNamed:@"avator"];
-//    emotionMessage.avatorUrl = @"http://tp2.sinaimg.cn/1966395317/180/5606145763/1";
-//    [self addMessage:emotionMessage];
-//    [self finishSendMessageWithBubbleMessageType:XHBubbleMessageMediaTypeEmotion];
+    //    XHMessage *emotionMessage = [[XHMessage alloc] initWithEmotionPath:emotionPath sender:sender timestamp:date];
+    //    emotionMessage.avator = [UIImage imageNamed:@"avator"];
+    //    emotionMessage.avatorUrl = @"http://tp2.sinaimg.cn/1966395317/180/5606145763/1";
+    //    [self addMessage:emotionMessage];
+    //    [self finishSendMessageWithBubbleMessageType:XHBubbleMessageMediaTypeEmotion];
     NSString *text = @"[[face:大笑]]";
     
     NSString *oldtext = self.messageInputView.inputTextView.text;
@@ -972,7 +940,7 @@ int sno; //测试
  *  @param indexPath 目标Cell所在位置IndexPath
  */
 - (void)configureCell:(XHMessageTableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
-
+    
 }
 
 /**
@@ -996,7 +964,7 @@ int sno; //测试
     [request setUseCookiePersistence : YES];
     [request addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
     [request setRequestMethod:@"POST"];
-
+    
     [request setPostValue:content forKey:@"content"];
     [request setPostValue:topicid forKey:@"_maindoc"];
     
@@ -1067,9 +1035,9 @@ int sno; //测试
     NSString *content = [@"" stringByAppendingFormat:@"%@%@%@%@%@", @"[[", type, @":", fileid, @"]]"];
     
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
-
+    
     NSString *msendercname = delegate._username;
-
+    
     [self didSendRichText:content fromSender:msendercname onDate:[NSDate date]];
     
 }
@@ -1148,7 +1116,7 @@ int sno; //测试
 {
     
 }
-    
+
 - (void)meeting_signin
 {
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];

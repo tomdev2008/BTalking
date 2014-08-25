@@ -598,6 +598,7 @@ UIViewController *uiviewController; //测试
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
     delegate._chatmessage_topic = topic;
     delegate._chatmessage_topicid = topicid;
+    delegate._viewid = @"ChatMessage";
     
     BTChatMessageTableViewController *messageTableViewController = [[BTChatMessageTableViewController alloc] init];
     

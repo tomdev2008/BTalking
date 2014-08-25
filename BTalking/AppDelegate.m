@@ -25,6 +25,7 @@
 
 #import "BTTopicViewController.h"
 #import "BTChatMessageTableViewController.h"
+#import "Toast+UIView.h"
 
 @implementation AppDelegate
 
@@ -34,7 +35,7 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // 设置访问协议
-    self._http = @"https://";
+    self._http = @"http://";
  
     // 注册推送服务
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes: UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert];
@@ -60,6 +61,8 @@
     
     NSLog(@"regisger success:%@", pToken);
     NSLog(@"_ptoken success:%@", _ptoken);
+    
+    [self.window.rootViewController.view makeToast:@"设备注册网络成功。"];
     
     //注册成功，将deviceToken保存到应用服务器数据库中
 }

@@ -85,9 +85,9 @@ int sno;
     NSLog(@"ptoken:%@", [defaults objectForKey:@"_ptoken"]);
     NSLog(@"http:%@", delegate._http);
     
-    self.tv_loginname.text = delegate._loginname;
-    self.tv_password.text = delegate._password;
-    self.tv_server.text = delegate._server;
+//    self.tv_loginname.text = delegate._loginname;
+//    self.tv_password.text = delegate._password;
+//    self.tv_server.text = delegate._server;
     
     // 检查登录信息是否具备
     if(delegate._ptoken == nil || [delegate._ptoken isEqualToString:@""])
