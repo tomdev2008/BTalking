@@ -10,6 +10,8 @@
 
 #import "XHFoundationCommon.h"
 
+#import "ViewTools.h"
+
 @interface XHBaseTableViewController ()
 
 /**
@@ -46,7 +48,9 @@
 - (UITableView *)tableView {
     if (!_tableView) {
         CGRect tableViewFrame = self.view.bounds;
-        tableViewFrame.size.height -= (self.navigationController.viewControllers.count > 1 ? 0 : (CGRectGetHeight(self.tabBarController.tabBar.bounds))) + [XHFoundationCommon getAdapterHeight];
+        tableViewFrame.size.height -= (self.navigationController.viewControllers.count > 1 ? 0 : (CGRectGetHeight(self.tabBarController.tabBar.bounds))) + [XHFoundationCommon getAdapterHeight] - 60;
+        // tableViewFrame = CGRectMake(0.0f, 100.0f, 320.0f, 300.0f);// 蒲剑临时测试
+        tableViewFrame.origin.y += 60; // 蒲剑临时修改，解决数据第1行无法显示的问题；
         _tableView = [[UITableView alloc] initWithFrame:tableViewFrame style:self.tableViewStyle];
         _tableView.delegate = self;
         _tableView.dataSource = self;
@@ -58,6 +62,12 @@
             }
         }
     }
+    
+
+    
+    [ViewTools log_bounds:@"window" view:self.view];
+    [ViewTools log_bounds:@"tableView" view:_tableView];
+    
     return _tableView;
 }
 

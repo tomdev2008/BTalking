@@ -8,7 +8,7 @@
 
 #import "XHMessageTableViewController.h"
 #import "EGORefreshTableHeaderView.h"
-
+#import "ASINetworkQueue.h"
 
 @interface BTChatMessageTableViewController : XHMessageTableViewController
 <UITableViewDelegate,UITableViewDataSource,EGORefreshTableHeaderDelegate,UIDocumentInteractionControllerDelegate>
@@ -23,6 +23,9 @@
 @property int _page_cur; // 记录当前翻页页数
 
 @property int _pages_cur; // 记录当前总页数
+
+// 下载线程队列
+@property  ASINetworkQueue *netWorkQueue;
 
 - (void)reloadTableViewDataSource;
 

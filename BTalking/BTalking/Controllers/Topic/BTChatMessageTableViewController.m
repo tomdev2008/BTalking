@@ -21,6 +21,8 @@
 #import "SBJsonParser.h"
 #import "ASIHTTPRequest.h"
 #import "ASIFormDataRequest.h"
+#import "ASINetworkQueue.h"
+
 #import "Toast+UIView.h"
 
 #import "BTApplication.h"
@@ -551,6 +553,12 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
                 [self openDocumentIn:message];
                 break;
             }
+            else
+            if([ctype isEqualToString:@"image"])
+            {
+                [self openDocumentIn:message];
+                break;
+            }
             
             DLog(@"message : %@", message.photo);
             DLog(@"message : %@", message.videoConverPhoto);
@@ -600,6 +608,8 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
     }
 }
 
+
+/*
 -(void)openDocumentIn:(id<XHMessageModel>)message
 {
     @try
@@ -608,11 +618,15 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
         
         NSURL *url = [NSURL URLWithString:message.originPhotoUrl];
         
+        NSRange range = [message.originPhotoUrl rangeOfString:@"?"];
+        NSString *fileName = [message.originPhotoUrl substringFromIndex:range.location];
+        
+        
         
         NSURLRequest *req = [[NSURLRequest alloc] initWithURL:url];
         [NSURLConnection sendAsynchronousRequest:req queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *resp, NSData *respData, NSError *error){
             NSLog(@"resp data length: %i", respData.length);
-            NSString *fileName = @"temp.txt";
+            
             NSString * path = [NSTemporaryDirectory() stringByAppendingPathComponent:fileName];
             NSError *errorC = nil;
             BOOL success = [respData writeToFile:path
@@ -622,19 +636,12 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
             if (success) {
                 documentController = [UIDocumentInteractionController interactionControllerWithURL:[NSURL fileURLWithPath:path]];
                 documentController.delegate = self;
-                [documentController presentOptionsMenuFromRect:CGRectZero inView:self.view animated:YES];
+                [self.navigationController pushViewController:documentController animated:YES];
+                //[documentController presentOptionsMenuFromRect:CGRectZero inView:self.view animated:YES];
             } else {
                 NSLog(@"fail: %@", errorC.description);
             }
         }];
-        
-        
-        
-        
-        
-        
-        
-        
         
     }
     @catch(NSException *e)
@@ -642,6 +649,124 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
         NSLog(@"%@", e.reason);
     }
 }
+ 
+ */
+
+
+-(void)openDocumentIn:(id<XHMessageModel>)message
+{
+    @try
+    {
+        // 创建网络请求
+        ASINetworkQueue *que = [[ASINetworkQueue alloc] init];
+        self.netWorkQueue = que;
+        
+        [self.netWorkQueue reset];
+        //[self.netWorkQueue setShowAccurateProgress:YES];
+        [self.netWorkQueue setShouldCancelAllRequestsOnFailure:NO];
+        [self.netWorkQueue go];
+        
+        // 初始化存放路径
+        NSURL *url = [NSURL URLWithString:message.originPhotoUrl];
+        
+        NSString *text = message.originPhotoUrl;
+        
+        int p1 = [text rangeOfString:@"/" options:NSBackwardsSearch].location + 1;
+        int p2 = [text rangeOfString:@"?"].location;
+        
+        NSRange range;
+        range.location = p1;
+        range.length = p2 - p1;
+        NSString *fileid = [text substringWithRange:range];
+        NSLog(@"%@", fileid);
+        
+        range.location = p2;
+        NSString *saveFileName = [message.originPhotoUrl substringFromIndex:p2 + 1];
+        NSLog(@"%@", saveFileName);
+        
+        //临时文件保存路径
+        NSString * saveFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:saveFileName];
+        NSString * tempFilePath = [saveFilePath stringByAppendingString:@".temp"];
+
+        ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
+        
+        [request setUseCookiePersistence : YES];
+        [request addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
+        [request setValidatesSecureCertificate:NO];
+        
+        request.delegate = self;
+        
+//        request.didReceiveResponseHeadersSelector = @selector(download_receiveresponseheader: didReceiveResponseHeaders:);
+        request.didFinishSelector = @selector(download_finished:);
+        request.didFailSelector = @selector(download_failed:);
+        
+        //初始化临时文件路径
+        [request setDownloadDestinationPath:saveFilePath];
+        //设置临时文件路径
+        [request setTemporaryFileDownloadPath:tempFilePath];
+        //设置进度条的代理,
+        [request setDownloadProgressDelegate:self];
+        //设置是是否支持断点下载
+        [request setAllowResumeForFileDownloads:YES];
+        //设置基本信息
+        
+        NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:fileid,@"fileid",saveFilePath,@"filepath",nil];
+        [request setUserInfo:dict];
+        
+        //添加到ASINetworkQueue队列去下载
+        [self.netWorkQueue addOperation:request];
+
+        
+    }
+    @catch(NSException *e)
+    {
+        NSLog(@"%@", e.reason);
+    }
+}
+
+#pragma mark -
+
+#pragma mark ASIHTTPRequestDelegate method
+- (void)download_receiveresponseheader:(ASIHTTPRequest *)request didReceiveResponseHeaders:(NSDictionary *)responseHeaders
+{
+    NSLog(@"didReceiveResponseHeaders-%@",[responseHeaders valueForKey:@"Content-Length"]);
+    NSLog(@"contentlength=%f",request.contentLength/1024.0/1024.0);
+    NSString *fileid = [request.userInfo objectForKey:@"fileid"];
+    
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    float tempConLen = [[userDefaults objectForKey:[NSString stringWithFormat:@"%@%@", @"file_length_",fileid]] floatValue];
+    
+    NSLog(@"tempConLen=%f",tempConLen);
+    //如果没有保存,则持久化他的内容大小
+    if (tempConLen == 0 )
+    {
+        //如果没有保存,则持久化他的内容大小
+        NSNumber *len = [NSNumber numberWithFloat:request.contentLength/1024.0/1024.0];
+        NSString *key = [NSString stringWithFormat:@"%@%@", @"file_length_",fileid];
+        [userDefaults setObject:len forKey:key];
+    }
+}
+
+//ASIHTTPRequestDelegate,下载完成时,执行的方法
+- (void)download_finished:(ASIHTTPRequest *)request
+{
+    
+    NSString *fileid = [request.userInfo objectForKey:@"fileid"];
+    NSString *filepath = [request.userInfo objectForKey:@"filepath"];
+    
+    documentController = [UIDocumentInteractionController interactionControllerWithURL:[NSURL fileURLWithPath:filepath]];
+    documentController.delegate = self;
+    [documentController presentOptionsMenuFromRect:CGRectZero inView:self.view animated:YES];
+    
+}
+
+- (void)download_failed:(ASIHTTPRequest *)request
+{
+    NSError *error = [request error];
+    NSLog(@"error: %@", [error localizedFailureReason]);
+    [self.view makeToast:@"文件数据下载异常，请稍后再试。"];
+}
+
 
 -(void)documentInteractionController:(UIDocumentInteractionController *)controller
        willBeginSendingToApplication:(NSString *)application {

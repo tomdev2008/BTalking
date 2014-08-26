@@ -75,7 +75,7 @@
             }
             if ([@"image" isEqualToString:ctype])
             {
-                
+                attributed_text = [MessageTools exp_image:attributed_text];
             }
             if ([@"file" isEqualToString:ctype])
             {
@@ -102,6 +102,22 @@
     onionatt.bounds = CGRectMake(0,0,40,40);
     NSAttributedString* imageAttributedString = [NSAttributedString attributedStringWithAttachment:onionatt];
 
+    
+    [attributedString insertAttributedString:imageAttributedString atIndex:0];
+    return attributedString;
+}
+
++(NSMutableAttributedString *) exp_image:(NSMutableAttributedString *) attributedString
+{
+    
+    UIImage *chosenImage = [UIImage imageNamed:@"app_panel_pic_icon.9.png"];
+    
+    
+    NSTextAttachment* onionatt = [NSTextAttachment new];
+    onionatt.image = chosenImage;
+    onionatt.bounds = CGRectMake(0,0,40,40);
+    
+    NSAttributedString* imageAttributedString = [NSAttributedString attributedStringWithAttachment:onionatt];
     
     [attributedString insertAttributedString:imageAttributedString atIndex:0];
     return attributedString;
