@@ -249,16 +249,27 @@
         }
         case XHBubbleMessageMediaTypePhoto:
         {
-            [_bubblePhotoImageView configureMessagePhoto:message.photo thumbnailUrl:message.thumbnailUrl originPhotoUrl:message.originPhotoUrl onBubbleMessageType:self.message.bubbleMessageType];
+            // 图片、录音等消息统一改为富文本消息模式处理
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@""];
+            attributedString = [MessageTools getExpressionString:[message text]];
+            _displayTextView.attributedText = attributedString;
             break;
         }
         case XHBubbleMessageMediaTypeFile:
         {_bubblePhotoImageView.hidden = NO;
             
-            _bubblePhotoImageView.backgroundColor = [UIColor redColor];
-             
+//            _bubblePhotoImageView.backgroundColor = [UIColor redColor];
+            
 //            [_bubblePhotoImageView configureMessageFile:message.photo filePath:message.filePath fileUrl:message.fileUrl onBubbleMessageType:self.message.bubbleMessageType];
+//            break;
+            
+            // 图片、录音等消息统一改为富文本消息模式处理
+            NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithString:@""];
+            attributedString = [MessageTools getExpressionString:[message text]];
+            _displayTextView.attributedText = attributedString;
             break;
+
+            
         }
         case XHBubbleMessageMediaTypeVideo:
             [_bubblePhotoImageView configureMessagePhoto:message.videoConverPhoto thumbnailUrl:message.thumbnailUrl originPhotoUrl:message.originPhotoUrl onBubbleMessageType:self.message.bubbleMessageType];

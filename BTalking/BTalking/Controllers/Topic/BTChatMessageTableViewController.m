@@ -282,7 +282,7 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
             
             XHMessage *message = [self tranMessage:content fromSender:cname onDate:[NSDate date]];
             
-            //            XHMessage *message = [[XHMessage alloc] initWithText:content sender:cname timestamp:[NSDate date]];
+//            XHMessage *message = [[XHMessage alloc] initWithText:content sender:cname timestamp:[NSDate date]];
             
             // 判断消息发送者是否当前用户
             if([delegate._userid isEqualToString:senderid])
@@ -504,7 +504,6 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
     {
         [self loadTopicMessage:self._topic_id_cur page:self._page_cur + 1];
     }
-    
     
 }
 
@@ -904,7 +903,6 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
     {
         NSString *fileid = (NSString*)[dictionary objectForKey:@"fileid"];
         NSString *url = [@"" stringByAppendingFormat:@"%@%@%@%@", delegate._http,delegate._server, @"/download/", fileid];
-        
         message = [[XHMessage alloc] initWithVoicePath:url voiceUrl:url voiceDuration:0 sender:sender timestamp:date];
         message.text = text;
         return message;
@@ -916,7 +914,7 @@ UIDocumentInteractionController *documentController; //第三方应用交互控�
         NSString *url = [@"" stringByAppendingFormat:@"%@%@%@%@", delegate._http,delegate._server, @"/download/", fileid];
         
         UIImage *pic = [UIImage imageNamed:@"app_panel_pic_icon.9.png"];
-        message = [[XHMessage alloc] initWithPhoto:pic thumbnailUrl:nil originPhotoUrl:url sender:sender timestamp:date];
+        message = [[XHMessage alloc] initWithPhoto:pic thumbnailUrl:url originPhotoUrl:url sender:sender timestamp:date];
         message.text = text;
         return message;
     }

@@ -16,11 +16,6 @@
 +(NSMutableAttributedString *)getExpressionString: (NSString *) text
 {
     
-    AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
-    
-    NSMutableArray *faceArray = [[NSMutableArray alloc]init];
-    faceArray = delegate._faceArray;
-    
     NSMutableAttributedString *attributed_text = [[NSMutableAttributedString alloc] initWithString:text];
     
     
@@ -39,7 +34,6 @@
             NSRange range = [match range];
             NSLog(@"%lu,%lu,%@",(unsigned long)range.location,(unsigned long)range.length,[text substringWithRange:range]);
             
-            NSString *tagString = [text substringWithRange:range];  // 整个匹配串
             NSRange r1 = [match rangeAtIndex:1];
             NSString *ctype = [text substringWithRange:r1];
             NSString *cvalue = [text substringWithRange:[match rangeAtIndex:2]];
@@ -48,38 +42,23 @@
             
             if([@"face" isEqualToString:ctype])
             {
-                int findex = -1;
-                
-                for(int i=0;i<faceArray.count;i++)
-                {
-                    if( [((NSString *)[faceArray[i] objectForKey:@"cname"]) isEqualToString:cvalue])
-                    {
-                        findex = i;
-                        break;
-                    }
-                }
-                
-                NSTextAttachment *attachment=[[NSTextAttachment alloc] initWithData:nil ofType:nil];
-                NSString *filename = [faceArray[findex] objectForKey:@"filename"];
-                UIImage *img=[UIImage imageNamed:filename];
-                attachment.image=img;
-                //attachment.bounds=CGRectMake(0, -10, 20, 20);
-                NSAttributedString *attachmentstr=[NSAttributedString attributedStringWithAttachment:attachment];
-                
-                [attributed_text replaceCharactersInRange:range withAttributedString:attachmentstr];
-                
+                NSMutableAttributedString *attributedString = [MessageTools exp_face:cvalue];
+                [attributed_text replaceCharactersInRange:range withAttributedString:attributedString];
             }
             if ([@"record" isEqualToString:ctype])
             {
-                attributed_text = [MessageTools exp_record:attributed_text];
+                NSMutableAttributedString *attributedString = [MessageTools exp_record:cvalue];
+                [attributed_text replaceCharactersInRange:range withAttributedString:attributedString];
             }
             if ([@"image" isEqualToString:ctype])
             {
-                attributed_text = [MessageTools exp_image:attributed_text];
+                NSMutableAttributedString *attributedString = [MessageTools exp_image:cvalue];
+                [attributed_text replaceCharactersInRange:range withAttributedString:attributedString];
             }
             if ([@"file" isEqualToString:ctype])
             {
-                
+                NSMutableAttributedString *attributedString = [MessageTools exp_file:cvalue];
+                [attributed_text replaceCharactersInRange:range withAttributedString:attributedString];
             }
         }
     }
@@ -90,11 +69,41 @@
     
 }
 
-+(NSMutableAttributedString *) exp_record:(NSMutableAttributedString *) attributedString
++(NSMutableAttributedString *) exp_face:(NSString *) text
+{
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc]initWithString:@""];
+
+    AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
+    
+    NSMutableArray *faceArray = [[NSMutableArray alloc]init];
+    faceArray = delegate._faceArray;
+    
+    int findex = -1;
+    
+    for(int i=0;i<faceArray.count;i++)
+    {
+        if( [((NSString *)[faceArray[i] objectForKey:@"cname"]) isEqualToString:text])
+        {
+            findex = i;
+            break;
+        }
+    }
+    
+    NSTextAttachment *attachment=[[NSTextAttachment alloc] initWithData:nil ofType:nil];
+    NSString *filename = [faceArray[findex] objectForKey:@"filename"];
+    UIImage *img=[UIImage imageNamed:filename];
+    attachment.image=img;
+    [attributedString appendAttributedString:[NSAttributedString attributedStringWithAttachment:attachment]];
+    return attributedString;
+}
+
+
++(NSMutableAttributedString *) exp_record:(NSString *) text
 {
 
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc]initWithString:@""];
     
-    UIImage *chosenImage = [UIImage imageNamed:@"avator"];
+    UIImage *chosenImage = [UIImage imageNamed:@"ReceiverVoiceNodePlaying003@2x.png"];
     
     
     NSTextAttachment* onionatt = [NSTextAttachment new];
@@ -102,16 +111,15 @@
     onionatt.bounds = CGRectMake(0,0,40,40);
     NSAttributedString* imageAttributedString = [NSAttributedString attributedStringWithAttachment:onionatt];
 
-    
     [attributedString insertAttributedString:imageAttributedString atIndex:0];
     return attributedString;
 }
 
-+(NSMutableAttributedString *) exp_image:(NSMutableAttributedString *) attributedString
++(NSMutableAttributedString *) exp_image:(NSString *) text
 {
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc]initWithString:@""];
     
     UIImage *chosenImage = [UIImage imageNamed:@"app_panel_pic_icon.9.png"];
-    
     
     NSTextAttachment* onionatt = [NSTextAttachment new];
     onionatt.image = chosenImage;
@@ -120,6 +128,28 @@
     NSAttributedString* imageAttributedString = [NSAttributedString attributedStringWithAttachment:onionatt];
     
     [attributedString insertAttributedString:imageAttributedString atIndex:0];
+    
+    NSLog(@"astring: %@", attributedString);
+    
+    return attributedString;
+}
+
++(NSMutableAttributedString *) exp_file:(NSString *) text
+{
+    NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc]initWithString:@""];
+    
+    UIImage *chosenImage = [UIImage imageNamed:@"app_panel_pic_icon.9.png"];
+    
+    NSTextAttachment* onionatt = [NSTextAttachment new];
+    onionatt.image = chosenImage;
+    onionatt.bounds = CGRectMake(0,0,40,40);
+    
+    NSAttributedString* imageAttributedString = [NSAttributedString attributedStringWithAttachment:onionatt];
+    
+    [attributedString insertAttributedString:imageAttributedString atIndex:0];
+    
+    NSLog(@"astring: %@", attributedString);
+    
     return attributedString;
 }
 

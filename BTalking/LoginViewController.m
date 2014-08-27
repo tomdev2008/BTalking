@@ -44,11 +44,6 @@ NSString *c_username;
 NSString *c_password;
 NSString *c_server;
 
-
-
-NSMutableArray *testList; //测试
-int sno;
-
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
     self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
@@ -63,7 +58,7 @@ int sno;
 {
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.
- 
+    
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
     
     NSUserDefaults *defaults =[NSUserDefaults standardUserDefaults];
@@ -108,10 +103,6 @@ int sno;
     // 登录信息具备，自动登录，否则等候用户手动登录
     // [self request_login:delegate._loginname password:delegate._password server:delegate._server ptoken:delegate._ptoken];
     
-    
-    testList = [[NSMutableArray alloc]init];
-    sno = 1;
-    
 
 }
 
@@ -124,8 +115,12 @@ int sno;
 
 - (IBAction)login:(id)sender
 {
-//    [self test];
+    
+//    NSString *text = @"[[image:53fd3ff0ec75cf56060546cb?logo.png]]";
+//    NSMutableAttributedString *rtext = [MessageTools getExpressionString:text];
+//    NSLog(@"%@", rtext);
 //    return;
+    
     
     AppDelegate *delegate=(AppDelegate*)[[UIApplication sharedApplication]delegate];
     
@@ -330,26 +325,6 @@ int sno;
 //    NSLog(@"%@", topicViewController1);
 //    NSLog(@"%d", topicViewController1._page_cur);
 //    NSLog(@"%@", topicViewController1._querystring);
-}
-
-
--(void) test
-{
-    for(int i=0;i<5;i++)
-    {
-        NSString *text = [@"" stringByAppendingFormat:@"%@%d", @"c", sno];
-        NSString *sender = @"pujian";
-        NSDate *date = [NSDate date];
-        XHMessage *message = [[XHMessage alloc] initWithText:text sender:sender timestamp:date];
-        [testList insertObject:message atIndex:0];
-        sno = sno + 1;
-    }
-    
-    for(int i=0;i<testList.count;i++)
-    {
-        XHMessage *message = [testList objectAtIndex:i];
-        NSLog(@"%@%d%@%@", @"num", i, @":", message.text);
-    }
 }
 
 @end

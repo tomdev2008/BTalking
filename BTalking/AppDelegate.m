@@ -40,15 +40,11 @@
     // 注册推送服务
     [[UIApplication sharedApplication] registerForRemoteNotificationTypes: UIRemoteNotificationTypeBadge | UIRemoteNotificationTypeSound | UIRemoteNotificationTypeAlert];
     
-    
-    // Override point for customization after application launch.
     LoginViewController *loginViewController = [[LoginViewController alloc] init];
     
     self.window.rootViewController = loginViewController;
     
     [self.window makeKeyAndVisible];
-    
-
     
     return YES;
 }
@@ -68,43 +64,52 @@
 }
 
 
+// 处理推送消息
 - (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo{
-    // 处理推送消息
     
-    NSLog(@"%@", userInfo);
-    //    NSLog(@"%@",[userInfo objectForKey:@"message"]);
-    
-    
-    if (self._rootTabBarController != nil)
+    @try
     {
-        if ([self._viewid isEqualToString:@"ChatMessage"])
+        if (self._rootTabBarController != nil)
         {
-            
-            
-            NSString *str_message = [userInfo objectForKey:@"message"];
-            NSDictionary *message = [[[SBJsonParser alloc]init] objectWithString:str_message];
-            
-            NSString *str_did = [message objectForKey:@"did"]; // 话题标识
-            NSString *str_cid = [message objectForKey:@"cid"]; // 消息标识
-            
-            if([str_did isEqualToString:self._chatmessage_topicid])
+            if ([self._viewid isEqualToString:@"ChatMessage"])
             {
-                NSString *strURL = [@"" stringByAppendingFormat:@"%@%@%@%@%@%@", self._http,self._server, @"/message/", str_did, @"/", str_cid];
-                NSURL *url = [NSURL URLWithString:strURL];
-                ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
-                [request setUseCookiePersistence : YES];
-                [request addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
-                [request setValidatesSecureCertificate:NO];
-                request.delegate = self;
-                request.didFinishSelector = @selector(ajaxload_message_finished:);
-                request.didFailSelector = @selector(ajaxload_message_failed:);
-                [request startAsynchronous];
+                NSLog(@"%@", userInfo);
+                
+                NSString *str_message = [userInfo objectForKey:@"message"];
+                
+                NSLog(@"%@", str_message);
+
+                NSDictionary *message = [[[SBJsonParser alloc]init] objectWithString:str_message];
+                
+                NSString *str_did = [message objectForKey:@"did"]; // 话题标识
+                NSString *str_cid = [message objectForKey:@"cid"]; // 消息标识
+                
+                if([str_did isEqualToString:self._chatmessage_topicid])
+                {
+                    NSString *strURL = [@"" stringByAppendingFormat:@"%@%@%@%@%@%@", self._http,self._server, @"/message/", str_did, @"/", str_cid];
+                    NSURL *url = [NSURL URLWithString:strURL];
+                    ASIHTTPRequest *request = [ASIHTTPRequest requestWithURL:url];
+                    [request setUseCookiePersistence : YES];
+                    [request addRequestHeader:@"X-Requested-With" value:@"XMLHttpRequest"];
+                    [request setValidatesSecureCertificate:NO];
+                    request.delegate = self;
+                    request.didFinishSelector = @selector(ajaxload_message_finished:);
+                    request.didFailSelector = @selector(ajaxload_message_failed:);
+                    [request startAsynchronous];
+                }
             }
-            
         }
+    }
+    @catch (NSException *exception)
+    {
+        [self.window.rootViewController.view makeToast:@"解析消息异常。"];
+    }
+    @finally
+    {
         
     }
     
+    NSLog(@"%@", userInfo);
 }
 
 
@@ -121,6 +126,7 @@
     if (!json)
     {
         NSLog(@"cleaned...");
+        [self.window.rootViewController.view makeToast:@"解析消息异常，请稍后再试。"];
         return;
     }
     
@@ -165,10 +171,6 @@
     NSLog(@"Regist fail%@",error);
 }
 
-
-
-
-							
 - (void)applicationWillResignActive:(UIApplication *)application
 {
     // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
